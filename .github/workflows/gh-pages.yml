@@ -18,34 +18,21 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      # 1. Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 2. Git identity (necesario para commits en gh-pages)
       - name: Configure Git identity
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      # 3. Instalar la toolchain de Swift (si necesitas una versión específica)
-      - name: Set up Swift
+      - name: Set up Swift toolchain
         uses: fwal/setup-swift@v2
         with:
-          swift-version: '5.9'   # ajusta según tu proyecto
+          swift-version: '5.9'
 
-      # 4. Build (opcional, si tu paquete Swift necesita compilarse primero)
-      - name: Build Swift Package
-        run: swift build --disable-sandbox
-
-      # 5. Generate DocC documentation
-      #
-      # Asume que tu proyecto tiene un target de documentación .docc
-      # y que Xcode genera la doc en: 
-      #   emma-test-ios.docc
-      #
       - name: Generate DocC archive
         run: |
           xcodebuild \
@@ -56,23 +43,17 @@ jobs:
             BUILD_DIR=build \
             -allowProvisioningUpdates
 
-      # 6. Convertir el archive DocC a sitio web
       - name: Convert DocC archive to HTML
         run: |
-          # Ajusta la ruta a tu archive .docc
           mkdir -p public
           xcrun docc convert \
             build/Build/Products/Debug-iphonesimulator/EmmaTest.doccarchive \
             --output-path public
-
-          # Desactivar Jekyll (para no ignorar archivos que empiecen con "_")
           touch public/.nojekyll
 
-      # 7. Asegurar que la rama gh-pages exista
       - name: Ensure gh-pages branch exists
         run: |
           if ! git ls-remote --exit-code --heads origin gh-pages; then
-            echo "Creating gh-pages branch..."
             git checkout --orphan gh-pages
             git rm -rf .
             echo "# GitHub Pages" > index.html
@@ -80,11 +61,8 @@ jobs:
             git commit -m "Initialize GitHub Pages branch"
             git push origin gh-pages
             git checkout main
-          else
-            echo "gh-pages branch already exists."
           fi
 
-      # 8. Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: peaceiris/actions-gh-pages@v3

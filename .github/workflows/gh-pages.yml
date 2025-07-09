@@ -18,39 +18,31 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      # 1. Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # 2. Configurar identidad Git
       - name: Configure Git identity
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Set up Swift toolchain
-        uses: fwal/setup-swift@v2
-        with:
-          swift-version: '5.9'
-
-      - name: Generate DocC archive
+      # 3. Convertir la carpeta .docc a HTML
+      - name: Convert DocC catalog to HTML
         run: |
-          xcodebuild \
-            -workspace emma-test-ios/EmmaTest.xcworkspace \
-            -scheme EmmaTest \
-            -destination 'platform=iOS Simulator,name=iPhone 14' \
-            docbuild \
-            BUILD_DIR=build \
-            -allowProvisioningUpdates
-
-      - name: Convert DocC archive to HTML
-        run: |
-          mkdir -p public
+          rm -rf public
+          mkdir public
+          # Ajusta esta ruta si tu carpeta .docc está en otro lugar
           xcrun docc convert \
-            build/Build/Products/Debug-iphonesimulator/EmmaTest.doccarchive \
+            emma-test-ios/emma-test-ios.docc \
             --output-path public
+          # Evita que GitHub Pages ignore carpetas que empiecen con "_"
           touch public/.nojekyll
 
+      # 4. Asegurar existencia de gh-pages
       - name: Ensure gh-pages branch exists
         run: |
           if ! git ls-remote --exit-code --heads origin gh-pages; then
@@ -63,6 +55,7 @@ jobs:
             git checkout main
           fi
 
+      # 5. Desplegar a GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: peaceiris/actions-gh-pages@v3

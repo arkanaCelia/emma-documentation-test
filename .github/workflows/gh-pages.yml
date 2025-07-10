@@ -34,18 +34,17 @@ jobs:
             emma-test-ios/emma-test-ios.docc \
             --output-path public/_site
 
+          # Mover contenido generado a la raíz de 'public'
           mv public/_site/* public/
           rm -rf public/_site
 
-          # Agrega base href
-          perl -pi -e 's|<head>|<head><base href="./">|' public/index.html
+          # Ajustar rutas relativas en el HTML principal
+          sed -i '' 's#<head>#<head><base href="./">#' public/index.html
 
-          # Corrige rutas absolutas en todo el HTML
-          find public -name "*.html" -exec perl -pi -e 's|/js/|./js/|g; s|/css/|./css/|g; s|/img/|./img/|g; s|/images/|./images/|g; s|/favicon|./favicon|g' {} +
+          # Arreglar var baseUrl = "/" -> "./"
+          perl -pi '' -e 's|var baseUrl = "/";|var baseUrl = "./";|' public/index.html
 
-          # Corrige el script baseUrl = "/" => baseUrl = "./"
-          perl -pi -e 's|var baseUrl = "/";|var baseUrl = "./";|' public/index.html
-
+          # Prevenir que GitHub Pages ignore carpetas con "_"
           touch public/.nojekyll
 
       - name: Ensure gh-pages branch exists

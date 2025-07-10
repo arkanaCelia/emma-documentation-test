@@ -40,8 +40,11 @@ jobs:
           # Agrega base href
           perl -pi -e 's|<head>|<head><base href="./">|' public/index.html
 
-          # Reescribe rutas absolutas a relativas
+          # Corrige rutas absolutas en todo el HTML
           find public -name "*.html" -exec perl -pi -e 's|/js/|./js/|g; s|/css/|./css/|g; s|/img/|./img/|g; s|/images/|./images/|g; s|/favicon|./favicon|g' {} +
+
+          # Corrige el script baseUrl = "/" => baseUrl = "./"
+          perl -pi -e 's|var baseUrl = "/";|var baseUrl = "./";|' public/index.html
 
           touch public/.nojekyll
 

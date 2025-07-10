@@ -13,34 +13,38 @@ permissions:
 jobs:
   deploy-docs:
     runs-on: macos-latest
-    # environment:
-    #   name: github-pages
-    #   url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      # 1. Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # 2. Configurar identidad Git
       - name: Configure Git identity
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      # 3. Convertir la carpeta .docc a HTML
-      - name: Convert DocC catalog to HTML
+      - name: Convert DocC catalog to HTML and fix paths
         run: |
           rm -rf public
           mkdir public
+
+          # Generar sitio en carpeta temporal js/
           xcrun docc convert \
             emma-test-ios/emma-test-ios.docc \
-            --output-path public
+            --output-path public/js
+
+          # Aplanar en la raíz de public/
+          mv public/js/* public/
+          rm -rf public/js
+
+          # Insertar <base href="./"> en index.html para rutas relativas
+          sed -i '' 's#<head>#<head><base href="./">#' public/index.html
+
+          # Desactivar Jekyll
           touch public/.nojekyll
 
-      # 4. Asegurar existencia de gh-pages
       - name: Ensure gh-pages branch exists
         run: |
           if ! git ls-remote --exit-code --heads origin gh-pages; then
@@ -53,7 +57,6 @@ jobs:
             git checkout main
           fi
 
-      # 5. Desplegar a GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: peaceiris/actions-gh-pages@v3

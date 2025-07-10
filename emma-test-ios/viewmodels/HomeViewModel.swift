@@ -5,7 +5,7 @@
 //  Created by Celia Pérez Vargas on 30/6/25.
 //
 
-//
+// example of a ViewModel in SwiftUI using Combine and EMMA SDK
 
 import Foundation
 import EMMA_iOS

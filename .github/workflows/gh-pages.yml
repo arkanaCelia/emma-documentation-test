@@ -15,16 +15,19 @@ jobs:
     runs-on: macos-latest
 
     steps:
+      # 1. Clonar el repositorio
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # 2. Configurar identidad Git
       - name: Configure Git identity
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
+      # 3. Convertir DocC a HTML y preparar para GitHub Pages
       - name: Convert DocC catalog to HTML
         run: |
           rm -rf public
@@ -34,15 +37,17 @@ jobs:
             emma-test-ios/emma-test-ios.docc \
             --output-path public/_site
 
-          # Mover contenido generado a la raíz de 'public'
+          # Mover el contenido a la raíz de 'public'
           mv public/_site/* public/
           rm -rf public/_site
 
-          # Fix de rutas relativas para carga de assets
-          sed -i '' 's#<head>#<head><base href="./">#' public/index.html
+          # Agregar base href para resolver correctamente los assets
+          perl -pi -e 's|<head>|<head><base href="./">|' public/index.html
 
+          # Evitar que GitHub Pages ignore archivos que empiezan con "_"
           touch public/.nojekyll
 
+      # 4. Asegurar que exista la rama gh-pages
       - name: Ensure gh-pages branch exists
         run: |
           if ! git ls-remote --exit-code --heads origin gh-pages; then
@@ -55,6 +60,7 @@ jobs:
             git checkout main
           fi
 
+      # 5. Desplegar a GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: peaceiris/actions-gh-pages@v3

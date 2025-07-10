@@ -25,24 +25,22 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Convert DocC catalog to HTML and fix paths
+      - name: Convert DocC catalog to HTML
         run: |
           rm -rf public
-          mkdir public
+          mkdir -p public/_site
 
-          # Generar sitio en carpeta temporal js/
           xcrun docc convert \
             emma-test-ios/emma-test-ios.docc \
-            --output-path public/js
+            --output-path public/_site
 
-          # Aplanar en la raíz de public/
-          mv public/js/* public/
-          rm -rf public/js
+          # Mover contenido generado a la raíz de 'public'
+          mv public/_site/* public/
+          rm -rf public/_site
 
-          # Insertar <base href="./"> en index.html para rutas relativas
+          # Fix de rutas relativas para carga de assets
           sed -i '' 's#<head>#<head><base href="./">#' public/index.html
 
-          # Desactivar Jekyll
           touch public/.nojekyll
 
       - name: Ensure gh-pages branch exists

@@ -13,9 +13,9 @@ permissions:
 jobs:
   deploy-docs:
     runs-on: macos-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    # environment:
+    #   name: github-pages
+    #   url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       # 1. Checkout
@@ -35,11 +35,9 @@ jobs:
         run: |
           rm -rf public
           mkdir public
-          # Ajusta esta ruta si tu carpeta .docc está en otro lugar
           xcrun docc convert \
             emma-test-ios/emma-test-ios.docc \
             --output-path public
-          # Evita que GitHub Pages ignore carpetas que empiecen con "_"
           touch public/.nojekyll
 
       # 4. Asegurar existencia de gh-pages
